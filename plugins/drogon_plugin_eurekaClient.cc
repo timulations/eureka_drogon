@@ -163,7 +163,7 @@ void eurekaClient::updateMetadata(const std::string& key, const std::string& new
     std::cout << "Sent update metadata request to " << _eurekaHostName << ":" << _eurekaPort << ", for " << _appName << " @ " << _appHostName << std::endl;
 }
 
-void eurekaClient::getAllDiscoveredServices(std::function<void(std::vector<eurekaDiscoveredApp>)> cb)
+void eurekaClient::getAllServices(std::function<void(std::vector<eurekaDiscoveredApp>)> cb)
 {
     auto client = HttpClient::newHttpClient("http://" + _eurekaHostName + ":" + _eurekaPort);
     auto req = HttpRequest::newHttpRequest();
@@ -210,7 +210,7 @@ void eurekaClient::getAllDiscoveredServices(std::function<void(std::vector<eurek
     std::cout << "Sent fetch all services request to " << _eurekaHostName << ":" << _eurekaPort << std::endl;
 }
 
-void eurekaClient::getAllInstancesInfo(const std::string& appName, std::function<void(std::vector<eurekaDiscoveredApp>)> cb)
+void eurekaClient::getAppServices(const std::string& appName, std::function<void(std::vector<eurekaDiscoveredApp>)> cb)
 {
     auto client = HttpClient::newHttpClient("http://" + _eurekaHostName + ":" + _eurekaPort);
     auto req = HttpRequest::newHttpRequest();
@@ -251,10 +251,10 @@ void eurekaClient::getAllInstancesInfo(const std::string& appName, std::function
 
         cb(ret);
     });
-    std::cout << "Sent fetch services with name matching '" << appName << "' request to " << _eurekaHostName << ":" << _eurekaPort << std::endl;
+    std::cout << "Sent fetch services with app name matching '" << appName << "' request to " << _eurekaHostName << ":" << _eurekaPort << std::endl;
 }
 
-void eurekaClient::getInstanceInfo(const std::string& appName, const std::string& appHostName, std::function<void(std::optional<eurekaDiscoveredApp>)> cb)
+void eurekaClient::getService(const std::string& appName, const std::string& appHostName, std::function<void(std::optional<eurekaDiscoveredApp>)> cb)
 {
     auto client = HttpClient::newHttpClient("http://" + _eurekaHostName + ":" + _eurekaPort);
     auto req = HttpRequest::newHttpRequest();

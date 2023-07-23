@@ -19,7 +19,7 @@ void eureka::getAllDiscovered(const HttpRequestPtr& req, std::function<void (con
     auto resp = HttpResponse::newHttpResponse();
     
     auto *eurekaClientPtr = app().getPlugin<drogon::plugin::eurekaClient>();
-    eurekaClientPtr->getAllDiscoveredServices([resp=std::move(resp), callback=std::move(callback)](std::vector<drogon::plugin::eurekaDiscoveredApp> allApps) {
+    eurekaClientPtr->getAllServices([resp=std::move(resp), callback=std::move(callback)](std::vector<drogon::plugin::eurekaDiscoveredApp> allApps) {
         std::stringstream ss;
         for (const auto& discoveredApp: allApps) {
             ss << discoveredApp.appName << " found at " << discoveredApp.appIpAddr << ":" << discoveredApp.appPort << ", ";
@@ -30,12 +30,12 @@ void eureka::getAllDiscovered(const HttpRequestPtr& req, std::function<void (con
     });
 }
 
-void eureka::getInstancesFor(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, const std::string& appName)
+void eureka::getApps(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, const std::string& appName)
 {
     auto resp = HttpResponse::newHttpResponse();
     
     auto *eurekaClientPtr = app().getPlugin<drogon::plugin::eurekaClient>();
-    eurekaClientPtr->getAllInstancesInfo(appName, [resp=std::move(resp), callback=std::move(callback)](std::vector<drogon::plugin::eurekaDiscoveredApp> allApps) {
+    eurekaClientPtr->getAppServices(appName, [resp=std::move(resp), callback=std::move(callback)](std::vector<drogon::plugin::eurekaDiscoveredApp> allApps) {
         std::stringstream ss;
 
         if (!allApps.empty()) {
@@ -52,12 +52,12 @@ void eureka::getInstancesFor(const HttpRequestPtr& req, std::function<void (cons
     });
 }
 
-void eureka::getInstance(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, const std::string& appName, const std::string& appHostName)
+void eureka::getAppInstance(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, const std::string& appName, const std::string& appHostName)
 {
     auto resp = HttpResponse::newHttpResponse();
     
     auto *eurekaClientPtr = app().getPlugin<drogon::plugin::eurekaClient>();
-    eurekaClientPtr->getInstanceInfo(appName, appHostName, [resp=std::move(resp), callback=std::move(callback), appName, appHostName](std::optional<drogon::plugin::eurekaDiscoveredApp> appInstanceOpt) {
+    eurekaClientPtr->getService(appName, appHostName, [resp=std::move(resp), callback=std::move(callback), appName, appHostName](std::optional<drogon::plugin::eurekaDiscoveredApp> appInstanceOpt) {
         std::stringstream ss;
         
         if (appInstanceOpt.has_value()) {

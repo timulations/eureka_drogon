@@ -19,8 +19,8 @@ class eureka : public drogon::HttpController<eureka>
     METHOD_ADD(eureka::index, "/", Get);
     METHOD_ADD(eureka::index, "", Get);
     METHOD_ADD(eureka::getAllDiscovered, "/get_all_discovered", Get);
-    METHOD_ADD(eureka::getInstancesFor, "/search_instances/{1}", Get);
-    METHOD_ADD(eureka::getInstance, "/search/{1}/{2}", Get);
+    METHOD_ADD(eureka::getApps, "/search_app/{1}", Get);
+    METHOD_ADD(eureka::getAppInstance, "/search/{1}/{2}", Get);
 
     METHOD_LIST_END
     // your declaration of processing function maybe like this:
@@ -28,8 +28,8 @@ class eureka : public drogon::HttpController<eureka>
     // void your_method_name(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, double p1, int p2) const;
     void index(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback);
     void getAllDiscovered(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback);
-    void getInstancesFor(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, const std::string& appName);
-    void getInstance(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, const std::string& appName, const std::string& appHostName);
+    void getApps(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, const std::string& appName);
+    void getAppInstance(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, const std::string& appName, const std::string& appHostName);
 
 };
 }
