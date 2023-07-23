@@ -1,5 +1,5 @@
 # eureka_drogon
-Eureka client for web services built on Drogon C++17 for service discovery with your Drogon servers.
+Minimalistic Eureka client for web services built on Drogon C++17 for service discovery with your Drogon servers.
 
 ## Getting Started
 Clone this repo.
