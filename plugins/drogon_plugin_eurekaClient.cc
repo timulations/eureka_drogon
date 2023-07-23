@@ -6,6 +6,7 @@
 
 #include <drogon/drogon.h>
 #include "drogon_plugin_eurekaClient.h"
+#include "pugixml.hpp"
 
 #if defined(__APPLE__) || defined(__linux__) || defined(__unix__)
 #include <arpa/inet.h>
@@ -18,6 +19,14 @@
 
 using namespace drogon;
 using namespace drogon::plugin;
+
+const static std::unordered_map<std::string, eurekaState>  stateStr2stateEnum = {
+    {"UP", eurekaState::UP},
+    {"DOWN", eurekaState::DOWN},
+    {"STARTING", eurekaState::STARTING},
+    {"OUT_OF_SERVICE", eurekaState::OUT_OF_SERVICE},
+    {"UNKNOWN", eurekaState::UNKNOWN}
+};
 
 static void sendHeartbeat(const std::string& eurekaHost, const std::string& eurekaPort, const std::string& appName, const std::string& appHostName)
 {
@@ -152,6 +161,53 @@ void eurekaClient::updateMetadata(const std::string& key, const std::string& new
     req->setPath("/eureka/apps/" + _appName + "/" + _appHostName + "/metadata?" + key + "=" + newValue);
     client->sendRequest(req, cb);
     std::cout << "Sent update metadata request to " << _eurekaHostName << ":" << _eurekaPort << ", for " << _appName << " @ " << _appHostName << std::endl;
+}
+
+void eurekaClient::getAllDiscoveredServices(std::function<void(std::vector<eurekaDiscoveredApp>)> cb)
+{
+    auto client = HttpClient::newHttpClient("http://" + _eurekaHostName + ":" + _eurekaPort);
+    auto req = HttpRequest::newHttpRequest();
+    req->setMethod(drogon::Get);
+
+    req->setPath("/eureka/apps/");
+    client->sendRequest(req, [cb = std::move(cb)](ReqResult result, const HttpResponsePtr& response) {
+        if (response->getStatusCode() != HttpStatusCode::k200OK) {
+            std::cerr << "Eureka server responded with Error " << response->getStatusCode() << std::endl;
+            std::cerr << response->getBody() << std::endl;
+            return;
+        }
+
+        pugi::xml_document doc;
+
+        std::cout << response->getBody() << std::endl;
+
+        pugi::xml_parse_result xml_parse_result = doc.load_string(std::string(response->getBody()).c_str());
+
+        if (!xml_parse_result) {
+            std::cerr << "Couldn't parse XML result" << std::endl;
+            return;
+        }
+
+        std::vector<eurekaDiscoveredApp> ret;
+
+        std::cout << "Discovered application: " << std::endl;
+        for (pugi::xml_node application: doc.child("applications").children("application")) {
+            
+            for (pugi::xml_node appInstance: application.children("instance")) {
+                std::cout << appInstance.child_value("status") << std::endl;
+                ret.push_back(eurekaDiscoveredApp{
+                    .appHostName = appInstance.child_value("hostName"),
+                    .appIpAddr = appInstance.child_value("ipAddr"),
+                    .appName = appInstance.child_value("app"),
+                    .appPort = appInstance.child_value("port"),
+                    .appStatus = stateStr2stateEnum.at(appInstance.child_value("status"))
+                });
+            }
+        }
+
+        cb(ret);
+    });
+    std::cout << "Sent fetch all services request to " << _eurekaHostName << ":" << _eurekaPort << std::endl;
 }
 
 std::optional<std::string> eurekaClient::getLocalIpAddress()

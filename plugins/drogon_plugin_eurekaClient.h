@@ -22,6 +22,15 @@ enum class eurekaState {
 
 constexpr unsigned eurekaClientDefaultHeartbeatPeriodSeconds = 30;
 
+
+struct eurekaDiscoveredApp {
+  std::string appName;
+  std::string appHostName;
+  std::string appIpAddr;
+  std::string appPort;
+  eurekaState appStatus;
+};
+
 /**
  * @brief This plugin is used to automatically manage register this Drogon service
  * with a Eureka service discovery server. It will periodically send heartbeats
@@ -50,7 +59,7 @@ constexpr unsigned eurekaClientDefaultHeartbeatPeriodSeconds = 30;
    @endcode
  *
  */
-class eurekaClient : public drogon::Plugin<eurekaClient>
+class DROGON_EXPORT eurekaClient : public drogon::Plugin<eurekaClient>
 {
   public:
     eurekaClient() {}
@@ -68,6 +77,8 @@ class eurekaClient : public drogon::Plugin<eurekaClient>
 
     // signal the Eureka server to update a metadata field value
     void updateMetadata(const std::string& key, const std::string& newValue, HttpReqCallback&& cb);
+
+    void getAllDiscoveredServices(std::function<void(std::vector<eurekaDiscoveredApp>)> cb);
 
   private:
     // gets the local IP address of the current machine

@@ -34,7 +34,6 @@
       "max_connections": 100000,
       "max_connections_per_ip": 0,
       "log": {
-        //"log_path": "logs",
         "logfile_base_name": "",
         "log_size_limit": 100000000,
         "log_level": "TRACE"
@@ -47,20 +46,20 @@
       "idle_connection_timeout":60,
       "keepalive_requests": 0,
       "pipelining_requests": 0,
-    "plugins": [
-        {
-            "name": "drogon::plugin::eurekaClient",
-            "dependencies": [],
-            "config": {
-                "eurekaHostName": "localhost",  
-                "eurekaPort": "8761",     
-                "appName": "my_drogon_service", 
-                "appPort": "5000",
-                "dataCenterInfo": {
-                    "@class": "com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo", 
-                    "name": "MyOwn"
-                }
-            }
-        }
-    ]
+      "plugins": [
+          {
+              "name": "drogon::plugin::eurekaClient",
+              "dependencies": [],
+              "config": {
+                  "eurekaHostName": "localhost",  
+                  "eurekaPort": "8761",     
+                  "appName": "my_drogon_service", 
+                  "appPort": "5000",
+                  "dataCenterInfo": {
+                      "@class": "com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo", 
+                      "name": "MyOwn"
+                  }
+              }
+          }
+      ]
 }
