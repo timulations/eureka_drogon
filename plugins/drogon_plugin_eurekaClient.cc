@@ -174,6 +174,7 @@ void eurekaClient::getAllDiscoveredServices(std::function<void(std::vector<eurek
         if (response->getStatusCode() != HttpStatusCode::k200OK) {
             std::cerr << "Eureka server responded with Error " << response->getStatusCode() << std::endl;
             std::cerr << response->getBody() << std::endl;
+            cb({});
             return;
         }
 
@@ -190,7 +191,6 @@ void eurekaClient::getAllDiscoveredServices(std::function<void(std::vector<eurek
 
         std::vector<eurekaDiscoveredApp> ret;
 
-        std::cout << "Discovered application: " << std::endl;
         for (pugi::xml_node application: doc.child("applications").children("application")) {
             
             for (pugi::xml_node appInstance: application.children("instance")) {
@@ -208,6 +208,95 @@ void eurekaClient::getAllDiscoveredServices(std::function<void(std::vector<eurek
         cb(ret);
     });
     std::cout << "Sent fetch all services request to " << _eurekaHostName << ":" << _eurekaPort << std::endl;
+}
+
+void eurekaClient::getAllInstancesInfo(const std::string& appName, std::function<void(std::vector<eurekaDiscoveredApp>)> cb)
+{
+    auto client = HttpClient::newHttpClient("http://" + _eurekaHostName + ":" + _eurekaPort);
+    auto req = HttpRequest::newHttpRequest();
+    req->setMethod(drogon::Get);
+
+    req->setPath("/eureka/apps/" + appName);
+    client->sendRequest(req, [cb = std::move(cb)](ReqResult result, const HttpResponsePtr& response) {
+        if (response->getStatusCode() != HttpStatusCode::k200OK) {
+            std::cerr << "Eureka server responded with Error " << response->getStatusCode() << std::endl;
+            std::cerr << response->getBody() << std::endl;
+            cb({});
+            return;
+        }
+
+        pugi::xml_document doc;
+
+        std::cout << response->getBody() << std::endl;
+
+        pugi::xml_parse_result xml_parse_result = doc.load_string(std::string(response->getBody()).c_str());
+
+        if (!xml_parse_result) {
+            std::cerr << "Couldn't parse XML result" << std::endl;
+            return;
+        }
+
+        std::vector<eurekaDiscoveredApp> ret;
+
+        for (pugi::xml_node appInstance: doc.child("application").children("instance")) {
+            std::cout << appInstance.child_value("status") << std::endl;
+            ret.push_back(eurekaDiscoveredApp{
+                .appHostName = appInstance.child_value("hostName"),
+                .appIpAddr = appInstance.child_value("ipAddr"),
+                .appName = appInstance.child_value("app"),
+                .appPort = appInstance.child_value("port"),
+                .appStatus = stateStr2stateEnum.at(appInstance.child_value("status"))
+            });
+        }
+
+        cb(ret);
+    });
+    std::cout << "Sent fetch services with name matching '" << appName << "' request to " << _eurekaHostName << ":" << _eurekaPort << std::endl;
+}
+
+void eurekaClient::getInstanceInfo(const std::string& appName, const std::string& appHostName, std::function<void(std::optional<eurekaDiscoveredApp>)> cb)
+{
+    auto client = HttpClient::newHttpClient("http://" + _eurekaHostName + ":" + _eurekaPort);
+    auto req = HttpRequest::newHttpRequest();
+    req->setMethod(drogon::Get);
+
+    req->setPath("/eureka/apps/" + appName + "/" + appHostName);
+    client->sendRequest(req, [cb = std::move(cb)](ReqResult result, const HttpResponsePtr& response) {
+        if (response->getStatusCode() != HttpStatusCode::k200OK) {
+            std::cerr << "Eureka server responded with Error " << response->getStatusCode() << std::endl;
+            std::cerr << response->getBody() << std::endl;
+            cb(std::nullopt);
+            return;
+        }
+
+        if (response->getBody().empty()) {
+            cb(std::nullopt);
+        } else {
+            pugi::xml_document doc;
+
+            std::cout << response->getBody() << std::endl;
+
+            pugi::xml_parse_result xml_parse_result = doc.load_string(std::string(response->getBody()).c_str());
+
+            if (!xml_parse_result) {
+                std::cerr << "Couldn't parse XML result" << std::endl;
+                return;
+            }
+
+            pugi::xml_node appInstance = doc.child("instance");
+
+            auto ret = eurekaDiscoveredApp{
+                .appHostName = appInstance.child_value("hostName"),
+                .appIpAddr = appInstance.child_value("ipAddr"),
+                .appName = appInstance.child_value("app"),
+                .appPort = appInstance.child_value("port"),
+                .appStatus = stateStr2stateEnum.at(appInstance.child_value("status"))
+            };
+
+            cb(ret);
+        }
+    });
+    std::cout << "Sent fetch services with name matching '" << appName << "' @" << appHostName << " request to " << _eurekaHostName << ":" << _eurekaPort << std::endl;
 }
 
 std::optional<std::string> eurekaClient::getLocalIpAddress()

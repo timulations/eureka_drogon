@@ -78,7 +78,14 @@ class DROGON_EXPORT eurekaClient : public drogon::Plugin<eurekaClient>
     // signal the Eureka server to update a metadata field value
     void updateMetadata(const std::string& key, const std::string& newValue, HttpReqCallback&& cb);
 
+    // return all discovered services (including self) currently registered on the Eureka registry
     void getAllDiscoveredServices(std::function<void(std::vector<eurekaDiscoveredApp>)> cb);
+
+    // return all discovered service instances with application name matching appName
+    void getAllInstancesInfo(const std::string& appName, std::function<void(std::vector<eurekaDiscoveredApp>)> cb);
+
+    // return the discovered service instance with matching appName and appHostName
+    void getInstanceInfo(const std::string& appName, const std::string& appHostName, std::function<void(std::optional<eurekaDiscoveredApp>)> cb);
 
   private:
     // gets the local IP address of the current machine
