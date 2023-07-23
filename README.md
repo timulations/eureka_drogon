@@ -10,7 +10,7 @@ Then, the only two things you really need are
 Copy those two files into your `plugins/` folder of your Drogon project. 
 
 And in your `config.json` file, add a section for configuring the Drogon Eureka client:
-```
+```json
       "plugins": [
           {
               "name": "drogon::plugin::eurekaClient",
@@ -30,7 +30,7 @@ And in your `config.json` file, add a section for configuring the Drogon Eureka 
 ```
 
 Here is the JSON spec
-```
+```json
    {
       "name": "drogon::plugin::eurekaClient",
       "dependencies": [],
@@ -52,7 +52,7 @@ Here is the JSON spec
 With this, your Drogon service will start to send registration requests and regular heartbeats to the Eureka server on start-up so that it is discoverable by other services within your Eureka cluster.
 
 To discover other services in the Eureka cluster within Drogon, use the following functions:
-```
+```cpp
     // return all discovered services (including self) currently registered on the Eureka registry
     void getAllServices(std::function<void(std::vector<eurekaDiscoveredApp>)> cb);
 
@@ -64,7 +64,7 @@ To discover other services in the Eureka cluster within Drogon, use the followin
 ```
 
 For example, in `controllers/api_v1_eureka.cc`. Simply get the plugin pointer, then away you go!
-```
+```cpp
     auto *eurekaClientPtr = app().getPlugin<drogon::plugin::eurekaClient>();
     eurekaClientPtr->getAppServices(appName, [resp=std::move(resp), callback=std::move(callback)](std::vector<drogon::plugin::eurekaDiscoveredApp> allApps) {
         std::stringstream ss;
